@@ -14,15 +14,15 @@ Solution:
 */
 
 void setup() {
-  pinMode(PB3, OUTPUT);
-  pinMode(PB4, OUTPUT);
-  pinMode(PB1, INPUT);
-  pinMode(PB2, INPUT);
+  pinMode(PB1, OUTPUT);
+  pinMode(PB2, OUTPUT);
+  pinMode(PB3, INPUT);
+  pinMode(PB4, INPUT);
 }
 
 void loop() {
-  digitalWrite(PB3, digitalRead(PB2));
-  digitalWrite(PB4, digitalRead(PB1));
+  digitalWrite(PB1, digitalRead(PB4));
+  digitalWrite(PB2, digitalRead(PB3));
   delay(100);
 }
 
