@@ -32,6 +32,8 @@ Third vesrion uses ATtiny as a port-proxy. You can see the schematic below.
 
 ![Schematix](https://raw.githubusercontent.com/katurov/onair-room-light/main/IMG_3250.jpeg)
 
+[More pictures is here](https://github.com/katurov/onair-room-light/blob/main/images/readme.md)
+
 ## How Does It Work
 
 * ESP01S connected to WiFi and starts web-server, now waiting for a signal.
