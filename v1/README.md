@@ -30,9 +30,9 @@ Third vesrion uses ATtiny as a port-proxy. You can see the schematic below.
 
 ## The Schematics
 
-![Schematix](https://raw.githubusercontent.com/katurov/onair-room-light/main/IMG_3250.jpeg)
+![Schematix](https://raw.githubusercontent.com/katurov/onair-room-light/main/v1/IMG_3250.jpeg)
 
-[More pictures is here](https://github.com/katurov/onair-room-light/blob/main/images/readme.md)
+[More pictures is here](https://github.com/katurov/onair-room-light/blob/main/v1/images/readme.md)
 
 ## How Does It Work
 
