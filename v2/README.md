@@ -1,14 +1,12 @@
 # ONAIR light for room
 
-This is dummy quarantine project to show I'm on the call to help people around understand my mood. It is a bit overkill with three controllers for two LEDs, but it works, I don't need more.
+In 2022 I need something that works with macOS Monterey as soon as system doesn't report me a mic state if used AirPods and something like that. Also I need to update the indicator: make it bigger and brighter.
 
 ## The idea
 
-Work form home is one of a main change in our lifes in 2020. Sometimes people in the same room cannot determine are you busy at conference-call or just listen the music. To help 'em in that question I made simply ONAIR lights like these in big studios. 
+Work form home is one of a main change in our lifes from 2020. Sometimes people in the same room cannot determine are you busy at conference-call or just listen the music. To help 'em in that question I made simply ONAIR lights like these in big studios. 
 
-Nobody can keep thinking about turn it on and off, so I started to think how can I made it authomatic. Don't know how to made it in different platforms, but I have MacBook Air (Catalina), which can provide on system level an answer is mic on, is camera on. So, fetching these data help to automate this task.
-
-As soon as many people nowadays uses Slack messenger, here is a hook to change "state" for users.
+Nobody can keep thinking about turn it on and off, so I started to think how can I made it authomatic. Don't know how to made it in different platforms, but I have MacBook Pro M1 2020 (Monterey) and here is my version of the python3 script to determine is cam on with system report and is mic on with finding an orange dot in the right upper corner of the screen.
 
 ## Arhitecture
 
@@ -18,30 +16,8 @@ A daemon on host machine constantly checks is mic or camera on or off. If mic is
 
 Software can disappear in a moment, so LED module have a timeout: no signal for about 9 seconds means host is down or anyway "vacant".
 
-## A Problem
-
-I made a few versions:
-
-First one was simplier: led are connected directly to ESP10S. It works, but they are npt that bright.
-
-Second one uses transistors as keys to use LEDs on +5v. But it creates new problem: it creates LOW on GPIO0 and GPIO2 so ESP won't start. So i've added two capacitors to add HIGH on a power-on circle, but it made LED blinky after 15 minutes of work. Not that good (btw., may be it is perfect - I hate long meetings).
-
-Third vesrion uses ATtiny as a port-proxy. You can see the schematic below.
-
-## The Schematics
-
-![Schematix](https://raw.githubusercontent.com/katurov/onair-room-light/main/IMG_3250.jpeg)
-
-[More pictures is here](https://github.com/katurov/onair-room-light/blob/main/images/readme.md)
-
 ## How Does It Work
 
 * ESP01S connected to WiFi and starts web-server, now waiting for a signal.
-* As soon as signal received, ESP put GPIO HIGH
-* As soon as INPUT PB on ATTiny13A goes HIGH it put corresponded PB HIGH
-* Transistor opens
-* LED does shine
-
-## How many LEDs can be connected?
-
-I used two LEDs for each transistor. They are bright and fun.
+* Script on a host mashine check the state and makes GET request if something is on use
+* As soon as signal received, ESP lights the LED up
