@@ -1,4 +1,4 @@
-# ONAIR light for room
+# ONAIR light for room V2
 
 In 2022 I need something that works with macOS Monterey as soon as system doesn't report me a mic state if used AirPods and something like that. Also I need to update the indicator: make it bigger and brighter.
 
