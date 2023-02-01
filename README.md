@@ -17,7 +17,7 @@ A daemon on host machine constantly checks is mic or camera on or off. If mic is
 
 Software can disappear in a moment, so LED module have a timeout: no signal for about 9 seconds means host is down or anyway "vacant".
 
-## A Problem
+## V1 and V2 of the indicator
 
 I made a few versions:
 
@@ -25,7 +25,7 @@ Prev vesrion uses ESP01S as server and ATtiny as a port-proxy. [You can see the 
 
 **The current version now** uses ESP01S - a small board with ESP8266 plus small (or big) RGB rong form Adafruit ([code can be found here](https://github.com/katurov/onair-room-light/tree/main/v2/OnAirScreen))
 
-But you caan use any as soon as they are similar in terms of interface.
+But you can use any as soon as they are similar in terms of interface.
 
 ## macOS difference
 
