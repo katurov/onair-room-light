@@ -27,9 +27,41 @@ Prev vesrion uses ESP01S as server and ATtiny as a port-proxy. [You can see the 
 
 But you can use any as soon as they are similar in terms of interface.
 
-## macOS difference
+## Laptop "daemon"
 
-Here are [v1](https://github.com/katurov/onair-room-light/tree/main/v1/) which works with Catalina and [v2](https://github.com/katurov/onair-room-light/tree/main/v2/) for Monterey. First one is pretty easy, next is complicated a bit.
+The daemon devided into two parts:
+
+**A script which checks states** of all mics and cams on the mashine. Script returns JSON:
+```JSON
+{
+    "Audio": [
+        {
+            "Mic": "Microsoft Teams Audio",
+            "Active": false
+        },
+        {
+            "Mic": "MacBook Pro Microphone",
+            "Active": false
+        },
+        {
+            "Mic": "Fataffe Microphone",
+            "Active": false
+        }
+    ],
+    "Video": [
+        {
+            "Cam": "Fataffe Camera",
+            "Active": false
+        },
+        {
+            "Cam": "FaceTime HD Camera",
+            "Active": false
+        }
+    ]
+}
+```
+
+**A script to analyze and put the signal on** constantly runs a script which checks states and makes a queries to the indicator
 
 ## How Does It Work
 
