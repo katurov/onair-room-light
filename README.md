@@ -21,7 +21,7 @@ Software can disappear in a moment, so LED module have a timeout: no signal for 
 
 I made a few versions:
 
-Prev vesrion uses ESP01S as server and ATtiny as a port-proxy. [You can see the schematic here](https://github.com/katurov/onair-room-light/blob/main/v1/).
+Prev vesrion uses ESP01S as server and ATtiny as a port-proxy. [You can see the schematic here](https://github.com/katurov/onair-room-light/blob/main/v1/images/).
 
 **The current version now** uses ESP01S - a small board with ESP8266 plus small (or big) RGB rong form Adafruit ([code can be found here](https://github.com/katurov/onair-room-light/tree/main/v2/OnAirScreen))
 
