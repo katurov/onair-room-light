@@ -63,6 +63,13 @@ The daemon devided into two parts:
 
 **A script to analyze and put the signal on** constantly runs a script which checks states and makes a queries to the indicator
 
+### How to run
+
+1. Open ```airScreenMonitorV4.py``` and fix path (yep, still)
+2. Use ```python3.10 airScreenMonitorV4.py``` to run the script
+
+Note to install libs before run.
+
 ## How Does It Work
 
 * Daemon script on host checks is mic or cam in use if yes - sends a request
