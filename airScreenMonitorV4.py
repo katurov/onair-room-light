@@ -24,6 +24,7 @@ def decodeResults ( jresults ) :
 	return None
 
 if __name__ == '__main__':
+	print ("\n", "Air screen monitor V4 is on!", "\n\n")
 	while True:
 		try :
 			ioreg = check_output( ['/Users/katurov/AirScreenMonV4/checkIsMicOn.py 2> /dev/null'],  shell=True )
@@ -32,7 +33,7 @@ if __name__ == '__main__':
 
 			color = decodeResults ( jresult )
 
-			print( color, end="\r")
+			print( " Current status: {}    ".format(color), end="\r")
 
 			if color is None :
 				pass
@@ -42,9 +43,16 @@ if __name__ == '__main__':
 				r = get('http://192.168.0.140/video', timeout=4)
 			else :
 				pass
-			
-			sleep(8)
+		except KeyboardInterrupt :
+			print( "EXITING     ")
+			break	
 		except Exception as e :
 			exc_type, exc_obj, exc_tb = exc_info()
 			print(exc_type, exc_tb.tb_lineno)
-			break
+			# break
+		finally :
+			try :
+				sleep(8)
+			except KeyboardInterrupt :
+				print( "      EXITING          ")
+				break
