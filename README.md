@@ -1,59 +1,72 @@
-# OnAirService
+# OnAirService (v5)
 
-Служба мониторинга активности микрофона и камеры в macOS для управления внешним On-Air индикатором.
+Modern macOS microphone and camera activity monitoring service for controlling an external "On-Air" indicator.
 
-## Особенности
-- **Низкоуровневый мониторинг**: Использует Apple CoreAudio и CoreMediaIO через PyObjC для определения реального использования устройств.
-- **Умная индикация**: 
-  - `Green`: Камера включена.
-  - `Yellow`: Включен только микрофон.
-  - `None`: Все выключено.
-- **Интеграция**: Отправляет HTTP GET запросы на внешний индикатор (по умолчанию `192.168.42.247`).
-- **Надежность**: Защита от двойного запуска через PID-файл, структурированное логирование (INFO/WARNING/ERROR).
-- **Быстрый запуск**: Поддержка `uv` для автоматического управления зависимостями.
+This is the fifth iteration of the project, evolving from a simple monitoring script into a full-fledged background service. The key improvement in v5 is the use of the native macOS event loop (`NSRunLoop`), allowing for efficient and stable device polling without leaks or process blocks.
 
-## Установка и запуск
+## The Idea
+The idea is simple: let people around you know your mood. When you are on a call, you are likely not ready to be interrupted. When you are just listening to music or working in silence, it’s a different story.
 
-### Вариант 1: Через uv (Рекомендуется)
-Если у вас установлен [uv](https://github.com/astral-sh/uv), зависимости установятся автоматически при первом запуске:
+Since macOS has no native external "On-Air" light support, this project bridges that gap by monitoring system-level device usage and signaling an external LED indicator (ESP8266 + NeoPixel) over the network.
+
+## Architecture
+The system consists of two parts:
+1. **The Host Daemon (v5)**: A Python service running on your MacBook. It utilizes `PyObjC` to interface directly with `CoreAudio` and `CoreMediaIO` frameworks. It runs a `NSRunLoop` with a timer to check the status of all microphones and cameras every 8 seconds.
+2. **The LED Module**: An ESP01S (ESP8266) directly controlling an Adafruit RGB NeoPixel ring (8 LEDs).
+
+**Signals:**
+The daemon sends three types of HTTP GET requests to the LED module:
+*   `/video`: Green light (Camera active).
+*   `/air`: Yellow/Orange light (Microphone active).
+*   (Stop sending): Vacant (The LED module has a ~9s safety timeout; if no signal is received, it turns off automatically).
+
+## Project Evolution
+- **v5 (Current)**: Full `PyObjC` service using `AppHelper.runConsoleEventLoop`. Fixed v4's limitation where device states wouldn't refresh without restarting the process.
+- **v4**: Used `CoreAudio`/`CoreMediaIO` but required running the check in a separate subprocess (`checkIsMicOn.py`) via `subprocess` every 8 seconds due to environment constraints.
+- **v3**: Used a "hack" analyzing screenshots to detect the system's "orange dot" (microphone indicator) in the menu bar.
+- **v2**: Based on parsing system utility outputs (`ioreg` and system profile).
+- **v1**: Initial prototypes using ESP01S and ATtiny as a port-proxy.
+
+## Features
+- **Native Event Loop**: `NSTimer` inside `NSRunLoop` ensures responsiveness and proper interaction with Apple system frameworks.
+- **Low Resource Usage**: No heavy subprocesses or screen recording permissions required.
+- **Reliability**: PID-file protection against duplicate instances, structured logging, and automatic persistence via `launchd`.
+
+## Installation & Usage
+
+### Option 1: Via uv (Recommended)
+If you have [uv](https://github.com/astral-sh/uv) installed, dependencies and environment will be managed automatically:
 ```bash
 uv run OnAirService.py
 ```
 
-### Вариант 2: Через pip
-1. Установите зависимости:
+### Option 2: Via pip
+1. Install dependencies:
    ```bash
-   pip install requests pyobjc-framework-AVFoundation pyobjc-framework-CoreAudio pyobjc-framework-CoreMediaIO pyobjc-framework-Cocoa
+   pip install -r requirements.txt
    ```
-2. Запустите скрипт:
+2. Run the service:
    ```bash
    python OnAirService.py
    ```
 
-## Автозапуск (macOS)
+## Autostart (macOS)
 
-Для автоматического запуска сервиса при входе в систему:
+To run the service in the background and start automatically on login:
 
-1. Скопируйте файл конфигурации в директорию агентов пользователя:
+1. Copy the configuration file:
    ```bash
    mkdir -p ~/Library/LaunchAgents/
    cp com.katurov.onairservice.plist ~/Library/LaunchAgents/
    ```
 
-2. Загрузите и активируйте агент:
+2. Load the agent:
    ```bash
    launchctl load ~/Library/LaunchAgents/com.katurov.onairservice.plist
    ```
 
-Теперь сервис будет запускаться автоматически при логине, работать в фоне и писать логи в `~/Library/Logs/OnAirService.stdout.log`.
+Logs are available at `~/Library/Logs/OnAirService.stdout.log`.
 
-### Управление автозапуском
-- **Остановить и отключить**: `launchctl unload ~/Library/LaunchAgents/com.katurov.onairservice.plist`
-- **Проверить статус**: `launchctl list | grep onairservice`
-
-## Логирование
-Скрипт выводит логи в стандартный поток (stdout) с метками времени и уровнями важности. Изменения состояния (`None -> Green`) логируются отдельно для экономии места.
-
-## Файлы
-- `OnAirService.py`: Основной исполняемый файл.
-- `/tmp/OnAirService.pid`: Файл для предотвращения повторного запуска.
+### Management
+- **Status**: `launchctl list | grep onairservice`
+- **Stop**: `launchctl unload ~/Library/LaunchAgents/com.katurov.onairservice.plist`
