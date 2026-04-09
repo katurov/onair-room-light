@@ -17,13 +17,40 @@ import signal
 import sys
 import objc
 import requests
+import os
 from Foundation import NSTimer, NSObject
 from PyObjCTools import AppHelper
 
 INDICATOR_IP = "192.168.42.247"
 INTERVAL = 8.0
+PID_FILE = "/tmp/OnAirService.pid"
+
+def check_pid():
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE, 'r') as f:
+                pid = int(f.read().strip())
+            
+            # Проверяем, существует ли процесс с таким PID
+            os.kill(pid, 0)
+            print(f"Service is already running (PID: {pid}). Exiting.")
+            sys.exit(1)
+        except (ValueError, OSError, ProcessLookupError):
+            # Файл битый или процесс не существует — удаляем старый PID файл
+            try:
+                os.remove(PID_FILE)
+            except OSError:
+                pass
+
+    with open(PID_FILE, 'w') as f:
+        f.write(str(os.getpid()))
+
+def cleanup():
+    if os.path.exists(PID_FILE):
+        os.remove(PID_FILE)
 
 class OnAirMonitor(NSObject):
+    # ... (остальные методы класса без изменений)
     def init(self):
         self = objc.super(OnAirMonitor, self).init()
         if self is None: return None
@@ -138,14 +165,22 @@ class OnAirMonitor(NSObject):
 
 def signal_handler(sig, frame):
     print("\nStopping OnAir service...")
+    cleanup()
     sys.exit(0)
 
 if __name__ == "__main__":
+    check_pid()
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
-    monitor = OnAirMonitor.alloc().init()
-    if monitor:
-        monitor.start()
-        AppHelper.runConsoleEventLoop()
-    else:
-        print("Failed to initialize monitor")
+    try:
+        monitor = OnAirMonitor.alloc().init()
+        if monitor:
+            monitor.start()
+            AppHelper.runConsoleEventLoop()
+        else:
+            print("Failed to initialize monitor")
+            cleanup()
+    except Exception as e:
+        print(f"Service error: {e}")
+        cleanup()
