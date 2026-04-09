@@ -1,0 +1,5 @@
+requests
+pyobjc-framework-AVFoundation
+pyobjc-framework-CoreAudio
+pyobjc-framework-CoreMediaIO
+pyobjc-framework-Cocoa
