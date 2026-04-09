@@ -18,8 +18,19 @@ import sys
 import objc
 import requests
 import os
+import logging
 from Foundation import NSTimer, NSObject
 from PyObjCTools import AppHelper
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("OnAirService")
 
 INDICATOR_IP = "192.168.42.247"
 INTERVAL = 8.0
@@ -31,12 +42,10 @@ def check_pid():
             with open(PID_FILE, 'r') as f:
                 pid = int(f.read().strip())
             
-            # Проверяем, существует ли процесс с таким PID
             os.kill(pid, 0)
-            print(f"Service is already running (PID: {pid}). Exiting.")
+            logger.warning(f"Service is already running (PID: {pid}). Exiting.")
             sys.exit(1)
         except (ValueError, OSError, ProcessLookupError):
-            # Файл битый или процесс не существует — удаляем старый PID файл
             try:
                 os.remove(PID_FILE)
             except OSError:
@@ -50,28 +59,33 @@ def cleanup():
         os.remove(PID_FILE)
 
 class OnAirMonitor(NSObject):
-    # ... (остальные методы класса без изменений)
     def init(self):
         self = objc.super(OnAirMonitor, self).init()
         if self is None: return None
         
         self.audio_status = {}
         self.video_status = {}
+        self.last_state = "Unknown"
         self.timer = None
         return self
 
     def start(self):
-        print(f"Starting OnAir Service (Interval: {INTERVAL}s)...")
+        logger.info(f"Starting OnAir Service (Interval: {INTERVAL}s)")
         self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             INTERVAL, self, "tick:", None, True
         )
-        # Первый запуск сразу
         self.tick_(None)
 
     def tick_(self, timer):
         self.check_audio()
         self.check_video()
         status = self.get_current_status()
+        
+        # Логируем только изменение состояния
+        if status != self.last_state:
+            logger.info(f"Status changed: {self.last_state} -> {status if status else 'None'}")
+            self.last_state = status
+            
         self.send_indicator_signal(status)
         self.print_summary(status)
 
@@ -83,7 +97,8 @@ class OnAirMonitor(NSObject):
                 AVFoundation.AVCaptureDevicePositionUnspecified
             )
             devices = session.devices()
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to discovery audio devices: {e}")
             devices = []
 
         current_status = {}
@@ -120,7 +135,8 @@ class OnAirMonitor(NSObject):
                 AVFoundation.AVCaptureDevicePositionUnspecified
             )
             devices = session.devices()
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to discovery video devices: {e}")
             devices = []
 
         current_status = {}
@@ -155,16 +171,17 @@ class OnAirMonitor(NSObject):
         url = f"http://{INDICATOR_IP}/{endpoint}"
         
         try:
-            # Используем таймаут как в оригинале (4с)
             requests.get(url, timeout=4)
-        except Exception as e:
-            print(f"Error sending signal to {url}: {e}")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Could not reach indicator at {url}: {e}")
 
     def print_summary(self, status):
-        print(f"Current status: {status if status else 'None'}    ", end="\r")
+        # Оставляем визуальный индикатор в одной строке для консоли
+        sys.stdout.write(f"\rCurrent: {status if status else 'None'}    ")
+        sys.stdout.flush()
 
 def signal_handler(sig, frame):
-    print("\nStopping OnAir service...")
+    logger.info("Stopping OnAir service (Signal received)")
     cleanup()
     sys.exit(0)
 
@@ -179,8 +196,8 @@ if __name__ == "__main__":
             monitor.start()
             AppHelper.runConsoleEventLoop()
         else:
-            print("Failed to initialize monitor")
+            logger.error("Failed to initialize monitor object")
             cleanup()
     except Exception as e:
-        print(f"Service error: {e}")
+        logger.error(f"Fatal service error: {e}", exc_info=True)
         cleanup()
