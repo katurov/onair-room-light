@@ -30,6 +30,27 @@ uv run OnAirService.py
    python OnAirService.py
    ```
 
+## Автозапуск (macOS)
+
+Для автоматического запуска сервиса при входе в систему:
+
+1. Скопируйте файл конфигурации в директорию агентов пользователя:
+   ```bash
+   mkdir -p ~/Library/LaunchAgents/
+   cp com.katurov.onairservice.plist ~/Library/LaunchAgents/
+   ```
+
+2. Загрузите и активируйте агент:
+   ```bash
+   launchctl load ~/Library/LaunchAgents/com.katurov.onairservice.plist
+   ```
+
+Теперь сервис будет запускаться автоматически при логине, работать в фоне и писать логи в `~/Library/Logs/OnAirService.stdout.log`.
+
+### Управление автозапуском
+- **Остановить и отключить**: `launchctl unload ~/Library/LaunchAgents/com.katurov.onairservice.plist`
+- **Проверить статус**: `launchctl list | grep onairservice`
+
 ## Логирование
 Скрипт выводит логи в стандартный поток (stdout) с метками времени и уровнями важности. Изменения состояния (`None -> Green`) логируются отдельно для экономии места.
 
